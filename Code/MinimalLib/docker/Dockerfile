@@ -15,7 +15,7 @@ ENV LANG C
 
 WORKDIR /opt
 RUN wget -q https://boostorg.jfrog.io/artifactory/main/release/1.67.0/source/boost_1_67_0.tar.gz && \
-  tar xzf boost_1_67_0.tar.gz 
+  tar xzf boost_1_67_0.tar.gz
 WORKDIR /opt/boost_1_67_0
 RUN ./bootstrap.sh --prefix=/opt/boost --with-libraries=system && \
   ./b2 install
@@ -34,11 +34,14 @@ RUN ./emsdk update-tags && \
 RUN mkdir /src
 WORKDIR /src
 ENV RDBASE=/src/rdkit
-ARG RDKIT_BRANCH=${RDKIT_BRANCH:-master}
-RUN git clone https://github.com/rdkit/rdkit.git
+# ARG RDKIT_BRANCH=${RDKIT_BRANCH:-master}
+# RUN git clone https://github.com/rdkit/rdkit.git
+# WORKDIR $RDBASE
+# RUN git fetch --all --tags && \
+#   git checkout $RDKIT_BRANCH
+
+COPY ../../../ ./rdkit
 WORKDIR $RDBASE
-RUN git fetch --all --tags && \
-  git checkout $RDKIT_BRANCH
 
 RUN mkdir build
 WORKDIR build
@@ -60,7 +63,7 @@ RUN cp /src/rdkit/External/INCHI-API/src/INCHI_BASE/src/util.c /src/rdkit/Extern
   sed 's/&& defined(__APPLE__)//' /src/rdkit/External/INCHI-API/src/INCHI_BASE/src/util.c.bak > /src/rdkit/External/INCHI-API/src/INCHI_BASE/src/util.c
 
 # build and "install"
-RUN make -j2 RDKit_minimal && \
+RUN make -j8 RDKit_minimal && \
   cp Code/MinimalLib/RDKit_minimal.* ../Code/MinimalLib/demo/
 
 # run the tests

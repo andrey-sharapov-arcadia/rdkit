@@ -43,6 +43,11 @@ namespace rj = rapidjson;
 
 using namespace RDKit;
 
+std::string JSReaction::get_svg(unsigned int w, unsigned int h) const {
+  if (!d_rxn) return "";
+  return MinimalLib::rxn_to_svg(*d_rxn, w, h);
+}
+
 std::string JSMol::get_smiles() const {
   if (!d_mol) return "";
   return MolToSmiles(*d_mol);
@@ -427,6 +432,11 @@ JSMol *get_mol(const std::string &input, const std::string &details_json) {
 JSMol *get_qmol(const std::string &input) {
   RWMol *mol = MinimalLib::qmol_from_input(input);
   return new JSMol(mol);
+}
+
+JSReaction *get_reaction(const std::string &input, bool useSmiles) {
+  ChemicalReaction *rxn = MinimalLib::rxn_from_input(input, useSmiles);
+  return new JSReaction(rxn);
 }
 
 std::string version() { return std::string(rdkitVersion); }

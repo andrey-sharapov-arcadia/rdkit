@@ -30,6 +30,33 @@ extern std::string process_details(const std::string &details,
 }  // namespace RDKit
 
 namespace {
+
+std::string draw_rxn_to_canvas_with_offset(JSReaction &self, emscripten::val canvas,
+                                          int offsetx, int offsety, int width,
+                                          int height) {
+  if (!self.d_rxn) {
+    return "no reaction";
+  }
+  auto ctx = canvas.call<emscripten::val>("getContext", std::string("2d"));
+  if (width < 0) {
+    width = canvas["width"].as<int>();
+  }
+  if (height < 0) {
+    height = canvas["height"].as<int>();
+  }
+  MolDraw2DJS *d2d = new MolDraw2DJS(width, height, ctx);
+  d2d->setOffset(offsetx, offsety);
+  d2d->drawReaction(*self.d_rxn);
+  delete d2d;
+  return "";
+}
+
+std::string draw_rxn_to_canvas(JSReaction &self, emscripten::val canvas, int width,
+                               int height) {
+  return draw_rxn_to_canvas_with_offset(self, canvas, 0, 0, width, height);
+}
+
+
 std::string draw_to_canvas_with_offset(JSMol &self, emscripten::val canvas,
                                        int offsetx, int offsety, int width,
                                        int height) {
@@ -110,6 +137,17 @@ emscripten::val get_morgan_fp_as_uint8array(const JSMol &self) {
 
 using namespace emscripten;
 EMSCRIPTEN_BINDINGS(RDKit_minimal) {
+  class_<JSReaction>("Reaction")
+#ifdef __EMSCRIPTEN__
+      .function("draw_to_canvas_with_offset", &draw_rxn_to_canvas_with_offset)
+      .function("draw_to_canvas", &draw_rxn_to_canvas)
+#endif
+      .function("get_svg",
+                select_overload<std::string() const>(&JSReaction::get_svg))
+      .function("get_svg",
+                select_overload<std::string(unsigned int, unsigned int) const>(
+                    &JSReaction::get_svg));
+
   class_<JSMol>("Mol")
       .function("is_valid", &JSMol::is_valid)
       .function("get_smiles", &JSMol::get_smiles)
@@ -207,4 +245,5 @@ EMSCRIPTEN_BINDINGS(RDKit_minimal) {
   function("get_mol", &get_mol, allow_raw_pointers());
   function("get_mol", &get_mol_no_details, allow_raw_pointers());
   function("get_qmol", &get_qmol, allow_raw_pointers());
+  function("get_reaction", &get_reaction, allow_raw_pointers());
 }

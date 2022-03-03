@@ -11,6 +11,24 @@
 #include <string>
 #include <GraphMol/RDKitBase.h>
 #include <GraphMol/SubstructLibrary/SubstructLibrary.h>
+#include <GraphMol/ChemReactions/Reaction.h>
+#include <GraphMol/ChemReactions/ReactionParser.h>
+
+class JSReaction {
+ public:
+  JSReaction() : d_rxn(nullptr) {}
+  JSReaction(RDKit::ChemicalReaction *rxn) : d_rxn(rxn) {}
+  bool is_valid() const { return d_rxn.get() != nullptr; }
+
+  std::string get_svg(unsigned int width, unsigned int height) const;
+  std::string get_svg() const {
+    return get_svg(d_defaultWidth, d_defaultHeight);
+  }
+
+  std::unique_ptr<RDKit::ChemicalReaction> d_rxn;
+  static constexpr unsigned int d_defaultWidth = 800;
+  static constexpr unsigned int d_defaultHeight = 200;
+};
 
 class JSMol {
  public:
@@ -120,5 +138,6 @@ class JSSubstructLibrary {
 std::string get_inchikey_for_inchi(const std::string &input);
 JSMol *get_mol(const std::string &input, const std::string &details_json);
 JSMol *get_qmol(const std::string &input);
+JSReaction *get_reaction(const std::string &input, bool useSmiles);
 std::string version();
 void prefer_coordgen(bool prefer);

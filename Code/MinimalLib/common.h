@@ -181,6 +181,11 @@ RWMol *qmol_from_input(const std::string &input, const char *details_json) {
   return qmol_from_input(input, json);
 }
 
+ChemicalReaction *rxn_from_input(const std::string &input, bool useSmiles = false) {
+  ChemicalReaction *rxn = RxnSmartsToChemicalReaction(input, nullptr, useSmiles);
+  return rxn;
+}
+
 std::string process_details(const std::string &details, unsigned int &width,
                             unsigned int &height, int &offsetx, int &offsety,
                             std::string &legend, std::vector<int> &atomIds,
@@ -295,6 +300,13 @@ std::string mol_to_svg(const ROMol &m, unsigned int w, unsigned int h,
   MolDraw2DUtils::prepareAndDrawMolecule(drawer, m, legend, &atomIds, &bondIds);
   drawer.finishDrawing();
 
+  return drawer.getDrawingText();
+}
+
+std::string rxn_to_svg(const ChemicalReaction &rxn, unsigned int w, unsigned int h) {
+  MolDraw2DSVG drawer(w, h);
+  drawer.drawReaction(rxn);
+  drawer.finishDrawing();
   return drawer.getDrawingText();
 }
 

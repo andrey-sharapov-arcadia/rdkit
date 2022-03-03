@@ -14,6 +14,9 @@
     h4 {
       color: #044484;
     }
+    .padder {
+      padding-bottom: 40px;
+    }
   </style>
 </head>
 <script src="./RDKit_minimal.js"></script>
@@ -25,6 +28,7 @@
     console.log('smiles: ' + m1.get_smiles());
     m1.delete();
     callback("CC(=O)Oc1ccccc1C(=O)O");
+    reaction_cb("[C:1](=[O:2])[OH].[N:3]>>[O:2]=[C:1][N:3]");
   });
   function form_to_details(details) {
     var controls = ["addAtomIndices", "addBondIndices", "explicitMethyl", "addStereoAnnotation"];
@@ -124,6 +128,15 @@
     }
     draw(mol);
   }
+  function reaction_cb(val, useSmiles) {
+    var rxn = RDKitModule.get_reaction(val, useSmiles);
+    var svg = rxn.get_svg();
+    if (svg == "") return;
+    var ob = document.getElementById("drawing_reaction");
+    ob.innerHTML = svg;
+    var canvas = document.getElementById("rdkit-rxn-canvas");
+    rxn.draw_to_canvas(canvas, -1, -1);
+  }
 </script>
 
 <body>
@@ -180,8 +193,20 @@
     <br>
     <textarea id="template_input" cols="80" rows="20" value="" onkeyup="template_callback(this.value)"></textarea>
     </div>
+    <h1>Reactions</h1>
+    SMARTS: <input id="reaction_smarts_input" type="text" value="[C:1](=[O:2])[OH].[N:3]>>[O:2]=[C:1][N:3]" onkeyup="reaction_cb(this.value)">
+    SMILES: <input id="reaction_smiles_input" type="text" value="" onkeyup="reaction_cb(this.value, true)">
+    <br>
+    <h3>SVG render</h3>
+    <div id="reaction">
+      <div id="drawing_reaction"></div>
+    </div>
+    <br>
+    <h3>Canvas render</h3>
+    <canvas id="rdkit-rxn-canvas" width="800" height="200" style="border:1px solid #000000;">
+    </canvas>
+    <div class="padder"></div>
   </div>
-
 </body>
 
 </html>
